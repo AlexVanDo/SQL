@@ -1,31 +1,52 @@
-import psycopg2
+import sqlalchemy as sq
+import json
+from sqlalchemy.orm import sessionmaker
+from SQLAlchemy_HW import create_tables, Publisher, Shop, Book, Stock, Sale
+
+login = input('Enter login: ')
+password = input('Enter password: ')
+db_name = input('Enter database name: ')
+DSN = f'postgresql://{login}:{password}@localhost:5432/{db_name}'
+engine = sq.create_engine(DSN)
+
+Session = sessionmaker(bind=engine)
+session = Session()
 
 
-# conn = psycopg2.connect(database='netologydb_1', user='postgres', password='ichbinaleksey')
-# with conn.cursor() as cur:
-#     cur.execute("CREATE TABLE test(id SERIAL PRIMARY KEY);")
-#     conn.commit()
-#     # conn.rollback()
-# cur = conn.cursor()
-# cur.execute('')
-# cur.close()
-# conn.close()
-c1 = None
-c2 = '47568734'
-c3 = [432, 543, 4633]
-c4 = 'ergjer'
-a = [None, '98457678945', [72, 87236, 8932947]]
-b = ['98456','87396']
-c = [c1, c2, c3, c4]
+def get_shops(person): 
+    req = session.query( 
+        Book.title, Shop.shop_name, Sale.price, Sale.data_sale 
+    ).select_from(Shop).\
+        join(Stock).\
+        join(Book).\
+        join(Publisher).\
+        join(Sale) 
+    if person.isdigit(): 
+        person_data = req.filter(person == Publisher.id).all() 
+    else:
+        person_data = req.filter(person == Publisher.name).all() 
+    for shp, bk, slp, dsl in person_data: 
+        print(f"{shp: <40} | {bk: <10} | {slp: <8} | {dsl.strftime('%d-%m-%Y')}") 
 
-for i in c:
-        if i and type(i) is not list:
-                if i == c1:
-                        print('this c1')
-                elif i == c2:
-                        print('this c2')
-                elif i == c4:
-                        print('this c4')
-        elif type(i) is list:
-                for l in i:
-                        print(l)
+
+if __name__ == '__main__':
+    person = input("Enter Publisher name or id: ") 
+    get_shops(person)     
+
+# def get_shops(person):
+#     req = session.query(
+#         Book.title, Shop.shop_name, Sale.price, Sale.data_sale
+#     ).select_from(Shop).\
+#         join(Stock).\
+#         join(Book).\
+#         join(Publisher).\
+#         join(Sale)
+#     if person.isdigit():
+#         person_data = req.filter(person == Publisher.id).all()
+#     else:
+#         person_data = req.filter(person == Publisher.name).all()
+#     for shp, bk, slp, dsl in person_data:
+#         print(f"{shp: <40} | {bk: <10} | {slp: <8} | {dsl.strftime('%d-%m-%Y')}")
+
+# if __name__ == '__main__':
+#     person = input("Enter Publisher name or id: ")
